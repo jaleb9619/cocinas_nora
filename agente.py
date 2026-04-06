@@ -387,7 +387,8 @@ def responder_usuario(
                         continue
 
                     # Calcular costos de orden
-                    costo_orden = determinar_costo_comanda(tool_input, config=config)
+                    # costo_orden = determinar_costo_comanda(tool_input, config=config)
+                    costo_orden = determinar_costo_comanda(tool_input, config=config, campos_platillos=campos_platillos_validos)
 
                     # ✅ CAMBIO: Usar construir_platillos_dict
                     nueva_orden = {
@@ -498,7 +499,9 @@ def responder_usuario(
                     # Si NO hay orden temporal pero trae platillos en esta llamada
                     if not orden_temporal:
                         print("⚠️ No hay orden temporal, creando orden única...")
-                        costo_orden = determinar_costo_comanda(tool_input, config=config)
+                        # costo_orden = determinar_costo_comanda(tool_input, config=config)
+                        # En agente.py, donde se llama determinar_costo_comanda
+                        costo_orden = determinar_costo_comanda(tool_input, config=config, campos_platillos=campos_platillos_validos)
                         
                         # ✅ CAMBIO: Usar construir_platillos_dict
                         orden_temporal = {
@@ -562,7 +565,8 @@ def responder_usuario(
                             # Solo agregar si NO es duplicado
                             if not es_duplicado:
                                 print("➕ Agregando comida nueva antes de confirmar...")
-                                costo_orden = determinar_costo_comanda(tool_input, config=config)
+                                # costo_orden = determinar_costo_comanda(tool_input, config=config)
+                                costo_orden = determinar_costo_comanda(tool_input, config=config, campos_platillos=campos_platillos_validos)
 
                                 nueva_orden = {
                                     "orden_numero": len(orden_temporal["ordenes"]) + 1,
@@ -849,7 +853,8 @@ def responder_usuario(
                         tool_input_recalculo['desechables'] = orden.get('desechables', False)
                         
                         costo_viejo = orden['costos'].get('monto_total', 0)
-                        nuevos_costos = determinar_costo_comanda(tool_input_recalculo, config=config)
+                        # nuevos_costos = determinar_costo_comanda(tool_input_recalculo, config=config)
+                        nuevos_costos = determinar_costo_comanda(tool_input, config=config, campos_platillos=campos_platillos_validos)
                         costo_nuevo = nuevos_costos.get('monto_total', 0)
                         
                         orden['costos'] = nuevos_costos
@@ -906,7 +911,8 @@ def responder_usuario(
                             tool_input_recalculo['desechables'] = orden.get('desechables', False)
                             
                             costo_viejo = orden['costos'].get('monto_total', 0)
-                            nuevos_costos = determinar_costo_comanda(tool_input_recalculo, config=config)
+                            # nuevos_costos = determinar_costo_comanda(tool_input_recalculo, config=config)
+                            nuevos_costos = determinar_costo_comanda(tool_input, config=config, campos_platillos=campos_platillos_validos)
                             costo_nuevo = nuevos_costos.get('monto_total', 0)
                             
                             orden['costos'] = nuevos_costos
@@ -967,7 +973,8 @@ def responder_usuario(
                                 tool_input_recalculo['desechables'] = orden.get('desechables', False)
                                 
                                 costo_viejo = orden['costos'].get('monto_total', 0)
-                                nuevos_costos = determinar_costo_comanda(tool_input_recalculo, config=config)
+                                # nuevos_costos = determinar_costo_comanda(tool_input_recalculo, config=config)
+                                nuevos_costos = determinar_costo_comanda(tool_input, config=config, campos_platillos=campos_platillos_validos)
                                 costo_nuevo = nuevos_costos.get('monto_total', 0)
                                 
                                 orden['costos'] = nuevos_costos
@@ -1189,7 +1196,8 @@ def responder_usuario(
                                     tool_input_recalculo[p['campo']] = p['platillo']
                         tool_input_recalculo['desechables'] = 'No'
                         
-                        nuevos_costos = determinar_costo_comanda(tool_input_recalculo, config=config)
+                        # nuevos_costos = determinar_costo_comanda(tool_input_recalculo, config=config)
+                        nuevos_costos = determinar_costo_comanda(tool_input, config=config, campos_platillos=campos_platillos_validos)
                         
                         resultado = actualizar_platillos_comanda(comanda_id, nuevos_platillos_ids, nuevos_costos)
                         
@@ -1282,7 +1290,8 @@ def responder_usuario(
                                 tool_input_recalculo[p['campo']] = p['platillo']
                         tool_input_recalculo['desechables'] = 'No'
                         
-                        nuevos_costos = determinar_costo_comanda(tool_input_recalculo, config=config)
+                        # nuevos_costos = determinar_costo_comanda(tool_input_recalculo, config=config)
+                        nuevos_costos = determinar_costo_comanda(tool_input, config=config, campos_platillos=campos_platillos_validos)
                         
                         resultado = actualizar_platillos_comanda(comanda_id, nuevos_platillos_ids, nuevos_costos)
                         
@@ -1345,7 +1354,8 @@ def responder_usuario(
                                     tool_input_recalculo[p['campo']] = p['platillo']
                             tool_input_recalculo['desechables'] = 'No'
                             
-                            nuevos_costos = determinar_costo_comanda(tool_input_recalculo, config=config)
+                            # nuevos_costos = determinar_costo_comanda(tool_input_recalculo, config=config)
+                            nuevos_costos = determinar_costo_comanda(tool_input, config=config, campos_platillos=campos_platillos_validos)
                             
                             resultado = actualizar_platillos_comanda(comanda_id, nuevos_platillos_ids, nuevos_costos)
                             
@@ -1386,7 +1396,8 @@ def responder_usuario(
                         for i, nombre in enumerate(platillos_nuevos):
                             tool_input_recalculo[f'extra_{i+1}'] = nombre
                         
-                        nuevos_costos = determinar_costo_comanda(tool_input_recalculo, config=config)
+                        # nuevos_costos = determinar_costo_comanda(tool_input_recalculo, config=config)
+                        nuevos_costos = determinar_costo_comanda(tool_input, config=config, campos_platillos=campos_platillos_validos)
                         
                         # Crear comanda nueva en el mismo grupo
                         from fct_orden_manual import crear_orden_manual

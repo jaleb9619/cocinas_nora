@@ -85,11 +85,11 @@ def determinar_costo_comanda(
         tool_input,
         config=None,
         supabase_client=supabase_client,
-        table_platillos=TLB_PLATILLOS):
+        table_platillos=TLB_PLATILLOS,
+        campos_platillos=None):
 
     precio_menu = float(config.get('precio_menu', 0.0)) if config else 0.0
     descuento_por_platillo = bool(config.get('descuento_por_platillo', False)) if config else False
-    # NUEVO: leer descuento fijo opcional
     descuento_fijo_omision = config.get('descuento_fijo_omision', None) if config else None
     if descuento_fijo_omision is not None:
         try:
@@ -103,22 +103,20 @@ def determinar_costo_comanda(
         filters={'activo': 'TRUE'},
     )
 
-    comida_estandar = ['primer_tiempo', 'segundo_tiempo', 'tercer_tiempo']
+    campos_menu = [c for c in (campos_platillos or []) if c != 'a_la_carta']
 
-    if all(campo in tool_input for campo in comida_estandar):
+    if any(campo in tool_input for campo in campos_menu):
+
         if descuento_por_platillo:
             platillos_omitidos = [
-                tool_input[campo] for campo in comida_estandar
-                if not tool_input.get(campo) or tool_input[campo] in ['', '<UNKNOWN>']
+                tool_input[campo] for campo in campos_menu
+                if campo in tool_input and (not tool_input.get(campo) or tool_input[campo] in ['', '<UNKNOWN>'])
             ]
-            # NUEVO: lógica de tres estados
             descuento = 0.0
             for platillo_omitido in platillos_omitidos:
                 if descuento_fijo_omision is not None:
-                    # Usa el descuento fijo configurado por el dueño
                     descuento += descuento_fijo_omision
                 else:
-                    # Usa el precio individual del platillo omitido
                     precio_individual = next(
                         (item['precio'] for item in costos_platillos
                          if item['platillo'] == platillo_omitido),
@@ -134,8 +132,8 @@ def determinar_costo_comanda(
             precio_a_la_carta = next(
                 (item['precio'] for item in costos_platillos 
                     if unaccent_simple(item['platillo'].lower()) == unaccent_simple(a_la_carta.lower())),
-                    0.0
-                )
+                0.0
+            )
             monto_estandar += precio_a_la_carta
 
         platillos_extra = [v for k, v in tool_input.items() if 'extra' in k]
@@ -179,6 +177,112 @@ def determinar_costo_comanda(
         'monto_total': monto_estandar + monto_extras + monto_desechables
     }
     return montos
+
+# def determinar_costo_comanda(
+#         tool_input,
+#         config=None,
+#         supabase_client=supabase_client,
+#         table_platillos=TLB_PLATILLOS,
+#         campos_platillos=None):
+
+#     precio_menu = float(config.get('precio_menu', 0.0)) if config else 0.0
+#     descuento_por_platillo = bool(config.get('descuento_por_platillo', False)) if config else False
+#     # NUEVO: leer descuento fijo opcional
+#     descuento_fijo_omision = config.get('descuento_fijo_omision', None) if config else None
+#     if descuento_fijo_omision is not None:
+#         try:
+#             descuento_fijo_omision = float(descuento_fijo_omision)
+#         except:
+#             descuento_fijo_omision = None
+
+#     costos_platillos = read_data(
+#         table_name=table_platillos,
+#         variables='platillo, precio',
+#         filters={'activo': 'TRUE'},
+#     )
+
+#     # comida_estandar = ['primer_tiempo', 'segundo_tiempo', 'tercer_tiempo']
+
+#     # if all(campo in tool_input for campo in comida_estandar):
+#     campos_menu = campos_platillos or ['primer_tiempo', 'segundo_tiempo', 'tercer_tiempo']
+#     if any(campo in tool_input for campo in campos_menu):
+
+        
+
+#         if descuento_por_platillo:
+#             platillos_omitidos = [
+#                 tool_input[campo] for campo in comida_estandar
+#                 if not tool_input.get(campo) or tool_input[campo] in ['', '<UNKNOWN>']
+#             ]
+#             # NUEVO: lógica de tres estados
+#             descuento = 0.0
+#             for platillo_omitido in platillos_omitidos:
+#                 if descuento_fijo_omision is not None:
+#                     # Usa el descuento fijo configurado por el dueño
+#                     descuento += descuento_fijo_omision
+#                 else:
+#                     # Usa el precio individual del platillo omitido
+#                     precio_individual = next(
+#                         (item['precio'] for item in costos_platillos
+#                          if item['platillo'] == platillo_omitido),
+#                         0.0
+#                     )
+#                     descuento += precio_individual
+#             monto_estandar = precio_menu - descuento
+#         else:
+#             monto_estandar = precio_menu
+
+#         a_la_carta = tool_input.get('a_la_carta')
+#         if a_la_carta and a_la_carta not in ['', '<UNKNOWN>']:
+#             precio_a_la_carta = next(
+#                 (item['precio'] for item in costos_platillos 
+#                     if unaccent_simple(item['platillo'].lower()) == unaccent_simple(a_la_carta.lower())),
+#                     0.0
+#                 )
+#             monto_estandar += precio_a_la_carta
+
+#         platillos_extra = [v for k, v in tool_input.items() if 'extra' in k]
+#         monto_extras = sum(
+#             item['precio'] for item in costos_platillos 
+#             if item['platillo'] in platillos_extra
+#         ) if platillos_extra else 0
+
+#     else:
+#         todos_platillos = []
+#         for k, v in tool_input.items():
+#             if k in ['nombre_completo', 'desechables']:
+#                 continue
+#             if not v or v in ['', '<UNKNOWN>']:
+#                 continue
+#             if isinstance(v, list):
+#                 todos_platillos.extend([p for p in v if p and p not in ['', '<UNKNOWN>']])
+#             else:
+#                 todos_platillos.append(v)
+
+#         todos_platillos_norm = [unaccent_simple(p.lower()) for p in todos_platillos]
+
+#         monto_estandar = sum(
+#             item['precio'] for item in costos_platillos
+#             if any(
+#                 norm in unaccent_simple(item['platillo'].lower()) or
+#                 unaccent_simple(item['platillo'].lower()) in norm
+#                 for norm in todos_platillos_norm
+#             )
+#         )
+#         monto_extras = 0
+
+#     desechable = [v for k, v in tool_input.items() if 'desechables' in k]
+#     tot_platillos = sum(1 for k in tool_input if k != 'nombre_completo') if 'Sí' in desechable else 0
+#     monto_desechables = tot_platillos * 5
+
+#     montos = {
+#         'monto_estandar': monto_estandar,
+#         'monto_extras': monto_extras,
+#         'monto_desechables': monto_desechables,
+#         'monto_total': monto_estandar + monto_extras + monto_desechables
+#     }
+#     return montos
+
 
 def determinar_costo_comanda_orig(
         tool_input,
