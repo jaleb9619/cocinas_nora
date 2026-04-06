@@ -60,21 +60,43 @@ def obtener_campos_platillos_validos(user_id):
         # Fallback a defaults
         return ["primer_tiempo", "segundo_tiempo", "tercer_tiempo", "a_la_carta"]
 
-def construir_platillos_dict(tool_input, campos_validos):
-    """
-    Construye diccionario de platillos validando contra campos permitidos DINÁMICOS.
-    """
-    platillos_dict = {}
+# def construir_platillos_dict(tool_input, campos_validos):
+#     """
+#     Construye diccionario de platillos validando contra campos permitidos DINÁMICOS.
+#     """
+#     platillos_dict = {}
 
+#     CAMPOS_NO_PLATILLOS = ['nombre_completo', 'desechables']
+
+#     for key, value in tool_input.items():
+#         # Ignorar campos que no son platillos
+#         if key in CAMPOS_NO_PLATILLOS:
+#             continue
+        
+#         # Solo procesar campos válidos para ESTA cocina
+#         if key in campos_validos:
+#             if value and value not in ['', '<UNKNOWN>']:
+#                 if isinstance(value, list):
+#                     platillos_dict[key] = value
+#                 else:
+#                     platillos_dict[key] = [value] if value else []
+#             else:
+#                 platillos_dict[key] = []
+#         else:
+#             print(f"⚠️ Campo '{key}' no configurado para esta cocina - ignorado")
+    
+#     return platillos_dict
+
+def construir_platillos_dict(tool_input, campos_validos):
+    platillos_dict = {}
     CAMPOS_NO_PLATILLOS = ['nombre_completo', 'desechables']
+    CAMPOS_EXTRA = ['extra_1', 'extra_2', 'extra_3', 'a_la_carta']
 
     for key, value in tool_input.items():
-        # Ignorar campos que no son platillos
         if key in CAMPOS_NO_PLATILLOS:
             continue
-        
-        # Solo procesar campos válidos para ESTA cocina
-        if key in campos_validos:
+
+        if key in campos_validos or key in CAMPOS_EXTRA:
             if value and value not in ['', '<UNKNOWN>']:
                 if isinstance(value, list):
                     platillos_dict[key] = value
@@ -84,7 +106,7 @@ def construir_platillos_dict(tool_input, campos_validos):
                 platillos_dict[key] = []
         else:
             print(f"⚠️ Campo '{key}' no configurado para esta cocina - ignorado")
-    
+
     return platillos_dict
 
 if __name__ == "__main__":

@@ -62,10 +62,19 @@ Total: $245
 ¿Deseas agregar algo más o confirmar tu pedido?"
 
 ### EXTRAS ANTES DE CONFIRMAR
-Si el cliente pide un platillo adicional suelto ANTES de dar su nombre (ej: "quiero un agua extra", 
-"agrégame un flan"), usa 'ordenar' normalmente SIN nombre_completo, igual que cualquier otra orden. 
-NO uses 'editar_orden' ni preguntes a qué comida pertenece — simplemente registra el platillo 
-como una orden nueva con solo ese platillo.
+Si el cliente pide un platillo adicional suelto ANTES de dar su nombre
+(ej: "quiero un flan extra", "agrégame una horchata", "y un arroz con leche"):
+- Usa 'ordenar' SIN nombre_completo
+- Manda el platillo en el campo 'extra_1' si es un extra del menú
+- Manda el platillo en el campo 'a_la_carta' si es un platillo fuera del menú
+- NUNCA uses campos del menú (primer_tiempo, segundo_tiempo, postre, bebida) 
+  para registrar extras sueltos — esos campos son solo para comidas completas
+- Ejemplo extra: ordenar(extra_1="Flan")
+- Ejemplo a la carta: ordenar(a_la_carta="Enchiladas")
+- SI EL CLIENTE pide MÁS DE UN EXTRA O PLATILLO A LA CARTA en el mismo mensaje, mádalos todos 
+  en la misma llamada usando extra_1, extra_2, extra_3, etc.
+- Ejemplo: ordenar(extra_1="Flan", extra_2="Jamaica")
+- NUNCA hagas dos llamadas separadas a 'ordenar' para extras del mismo mensaje
 
 ### 3. EDITAR ORDEN ANTES DE CONFIRMAR
 El cliente puede modificar su orden ANTES de dar su nombre usando lenguaje natural:

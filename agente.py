@@ -319,6 +319,95 @@ def responder_usuario(
                     #     if existente_normalizado == nueva_normalizada:
                     #         es_duplicado = True
                     #         break
+
+                    # Detectar si es solo extras/a_la_carta (sin tiempos del menú)
+                    campos_menu_actuales = [c for c in campos_platillos_validos if c != 'a_la_carta']
+                    es_solo_extra = (
+                        not any(campo in tool_input for campo in campos_menu_actuales) and
+                        any(k in tool_input for k in ['extra_1', 'extra_2', 'extra_3', 'a_la_carta'])
+                    )
+
+                    if es_solo_extra and orden_temporal.get("ordenes"):
+                        print("➕ Es extra/a_la_carta suelto - sumando a última orden existente")
+                        
+                        # Tomar la última orden
+                        ultima_orden = orden_temporal["ordenes"][-1]
+                        
+                        # Agregar los extras al dict de platillos de esa orden
+                        for key in ['extra_1', 'extra_2', 'extra_3', 'a_la_carta']:
+                            if key in tool_input and tool_input[key] not in ['', '<UNKNOWN>', None]:
+                                ultima_orden["platillos"][key] = [tool_input[key]]
+                        
+                        # Reconstruir tool_input completo para recalcular costo
+                        tool_input_recalculo = {}
+                        for tiempo_key, platillos_tiempo in ultima_orden["platillos"].items():
+                            if platillos_tiempo and platillos_tiempo not in [[], ['']]:
+                                if isinstance(platillos_tiempo, list) and len(platillos_tiempo) == 1:
+                                    tool_input_recalculo[tiempo_key] = platillos_tiempo[0]
+                                else:
+                                    tool_input_recalculo[tiempo_key] = platillos_tiempo
+                        
+                        # Recalcular costo total de esa orden
+                        costo_anterior = ultima_orden["costos"].get("monto_total", 0)
+                        costo_nuevo = determinar_costo_comanda(tool_input_recalculo, config=config, campos_platillos=campos_platillos_validos)
+                        
+                        # Actualizar orden y totales
+                        orden_temporal["monto_total_general"] -= costo_anterior
+                        ultima_orden["costos"] = costo_nuevo
+                        orden_temporal["monto_total_general"] += costo_nuevo.get("monto_total", 0)
+                        orden_temporal["ordenes"][-1] = ultima_orden
+                        
+                        save_orden_temporal(telefono, orden_temporal)
+                        
+                        # Resumen actualizado
+                        platillos_lista = []
+                        for tiempo_key, platillos_tiempo in ultima_orden["platillos"].items():
+                            if platillos_tiempo and platillos_tiempo not in ['', '<UNKNOWN>', []]:
+                                if isinstance(platillos_tiempo, list):
+                                    platillos_lista.extend(platillos_tiempo)
+                                else:
+                                    platillos_lista.append(platillos_tiempo)
+                        
+                        resumen_todas_ordenes = []
+                        for orden in orden_temporal["ordenes"]:
+                            platillos_orden = []
+                            for tiempo_key, platillos_tiempo in orden["platillos"].items():
+                                if platillos_tiempo and platillos_tiempo not in ['', '<UNKNOWN>', []]:
+                                    if isinstance(platillos_tiempo, list):
+                                        platillos_orden.extend(platillos_tiempo)
+                                    else:
+                                        platillos_orden.append(platillos_tiempo)
+                            resumen_todas_ordenes.append({
+                                "numero": orden["orden_numero"],
+                                "platillos": platillos_orden,
+                                "costo": orden["costos"].get("monto_total", 0),
+                                "texto": f"Comida {orden['orden_numero']}: {', '.join(platillos_orden)} (${orden['costos'].get('monto_total', 0)})"
+                            })
+                        
+                        content = {
+                            "status": "extra_agregado_a_orden_existente",
+                            "orden_numero": ultima_orden["orden_numero"],
+                            "platillos_actualizados": platillos_lista,
+                            "costo_orden_actualizado": costo_nuevo.get("monto_total", 0),
+                            "total_ordenes": orden_temporal["total_ordenes"],
+                            "monto_total_acumulado": orden_temporal["monto_total_general"],
+                            "todas_las_ordenes": resumen_todas_ordenes
+                        }
+                        
+                        tool_response = {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "tool_result",
+                                    "tool_use_id": tool_use.id,
+                                    "content": str(content)
+                                }
+                            ]
+                        }
+                        new_messages.append(tool_response)
+                        print(f"✅ Extra agregado a orden {ultima_orden['orden_numero']}")
+                        continue
+
                     es_duplicado = False
                     for orden_existente in orden_temporal["ordenes"]:
                         existente_vals = set()

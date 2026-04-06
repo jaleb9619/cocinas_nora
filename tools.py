@@ -56,6 +56,10 @@ tools = [
                     'type': 'string',
                     'description': 'Platillo extra que el cliente desea ordenar.'
                 },
+                'extra_3': {
+                    'type': 'string',
+                    'description': 'Platillo extra que el cliente desea ordenar.'
+                },
                 'desechables': {
                     'type': 'string',
                     'description': 'Indica si el cliente desea desechables para su pedido. Los valores posibles son "Sí" o "No"'
@@ -82,7 +86,7 @@ tools = [
                 },
                 'tiempo': {
                     'type': 'string',
-                    'enum': ['primer_tiempo', 'segundo_tiempo', 'tercer_tiempo', 'postre', 'agua', 'a_la_carta', 'extra_1', 'extra_2'],
+                    'enum': ['primer_tiempo', 'segundo_tiempo', 'tercer_tiempo', 'postre', 'agua', 'a_la_carta', 'extra_1', 'extra_2', 'extra_3'],
                     'description': 'Categoría del platillo a modificar (primer_tiempo, segundo_tiempo, etc)'
                 },
                 'platillo_quitar': {
@@ -118,7 +122,7 @@ tools = [
                 },
                 'tiempo': {
                     'type': 'string',
-                    'enum': ['primer_tiempo', 'segundo_tiempo', 'tercer_tiempo', 'postre', 'agua', 'a_la_carta', 'extra_1', 'extra_2'],
+                    'enum': ['primer_tiempo', 'segundo_tiempo', 'tercer_tiempo', 'postre', 'agua', 'a_la_carta', 'extra_1', 'extra_2', 'extra_3'],
                     'description': 'Categoría del platillo a modificar'
                 },
                 'platillo_quitar': {
