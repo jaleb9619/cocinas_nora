@@ -38,7 +38,7 @@ from fct_tools_ordenar import (
 )
 # from system_prompts import prompt_first_response, prompt_saludo
 from system_prompts import generar_prompt_first_response, generar_prompt_saludo, prompt_cat_atencion_clientes, prompt_atencion_clientes
-from tools import tools
+from tools import generar_tools 
 from utils import (
     obtener_campos_platillos_validos, 
     construir_platillos_dict
@@ -65,7 +65,7 @@ def responder_usuario(
     user_id=user_id,
     is_new_user=False,
     anthropic_client=anthropic_client,
-    tools=tools
+    tools=None
 ):
 
     config = obtener_config_cocina(user_id)
@@ -73,6 +73,8 @@ def responder_usuario(
     # ✅ NUEVO: Obtener campos válidos para esta cocina
     campos_platillos_validos = obtener_campos_platillos_validos(user_id)
     print(f"📋 Campos de platillos configurados: {campos_platillos_validos}")
+
+    tools = generar_tools(campos_platillos_validos)
 
     system_prompt = generar_prompt_first_response(config)
     prompt_saludo_dinamico = generar_prompt_saludo(config)
