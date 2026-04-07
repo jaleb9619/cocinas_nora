@@ -601,7 +601,7 @@ def responder_usuario(
                             print(f"     Platillos: {orden.get('platillos')}")
                     else:
                         print("🔍 DEBUG: NO hay orden temporal en Redis")
-                    
+
                     # Si NO hay orden temporal pero trae platillos en esta llamada
                     if not orden_temporal:
                         print("⚠️ No hay orden temporal, creando orden única...")
@@ -686,23 +686,32 @@ def responder_usuario(
                                 orden_temporal["monto_total_general"] += costo_orden.get('monto_total', 0)
                             else:
                                 print("✅ No se agregó comida duplicada - procediendo a confirmar")
-                    
+
                     # Asignar nombre del cliente
                     nombre_completo = tool_input['nombre_completo']
                     orden_temporal["nombre_cliente"] = nombre_completo
-                    
+
                     # Obtener pedido_grupo
                     pedido_grupo = orden_temporal["pedido_grupo"]
-                    
+
                     print(f"👤 Cliente: {nombre_completo}")
                     print(f"📦 Pedido grupo: {pedido_grupo}")
                     print(f"🍽️ Total órdenes: {orden_temporal['total_ordenes']}")
                     print(f"💰 Monto total: ${orden_temporal['monto_total_general']}")
-                    
+
                     # Persistir cada orden en la BD
                     comandas_ids = []
                     
                     for orden in orden_temporal["ordenes"]:
+
+                        # -------------- NUEVO CAMBIO --------------
+                        # Detectar si es comanda de solo extras
+                        campos_menu_keys = [c for c in campos_platillos_validos if c != 'a_la_carta']
+                        es_extra_comanda = not any(
+                            campo in orden["platillos"] and orden["platillos"][campo]
+                            for campo in campos_menu_keys
+                        )
+
                         # Insertar en tbl_cocina_comandas
                         comanda = {
                             'user_id': user_id,
@@ -712,7 +721,8 @@ def responder_usuario(
                             'monto_extras': orden['costos'].get('monto_extras', 0),
                             'monto_desechables': orden['costos'].get('monto_desechables', 0),
                             'monto_total': orden['costos'].get('monto_total', 0),
-                            'telefono_cliente': telefono
+                            'telefono_cliente': telefono,
+                            'es_extra': es_extra_comanda # NUEVO
                         }
                         
                         comanda_id = insert_data(comanda, TLB_COMANDAS, return_id=True)
