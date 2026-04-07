@@ -260,13 +260,28 @@ def responder_usuario(
                 )
 
                 # ✅ CAMBIO: Usar campos_platillos_validos dinámicamente
+                # tiene_platillos = any(
+                #     str(tool_input.get(campo, '')).strip() not in ['', '<UNKNOWN>']
+                #     for campo in campos_platillos_validos
+                # )
+
+
                 tiene_platillos = any(
                     str(tool_input.get(campo, '')).strip() not in ['', '<UNKNOWN>']
                     for campo in campos_platillos_validos
                 )
 
+                # AGREGAR ESTO:
+                tiene_extras = any(
+                    k in tool_input and str(tool_input[k]).strip() not in ['', '<UNKNOWN>']
+                    for k in ['extra_1', 'extra_2', 'extra_3', 'a_la_carta']
+                )
+
+                # CASO 1: SIN NOMBRE - (ORDEN TEMPORAL)
+                if not tiene_nombre and (tiene_platillos or tiene_extras):
+
                 # CASO 1: SIN NOMBRE - (orden temporal)
-                if not tiene_nombre and tiene_platillos:
+                # if not tiene_nombre and tiene_platillos:
                     print("📝 Guardando orden temporal en Redis...")
 
                     # Leer orden temporal actual (si existe)
